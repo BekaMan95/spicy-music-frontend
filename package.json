@@ -25,6 +25,7 @@
     "@stitches/core": "^1.2.8",
     "@styled-system/css": "^5.1.5",
     "@types/react-router-dom": "^5.3.3",
+    "dotenv": "^17.2.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-redux": "^9.2.0",

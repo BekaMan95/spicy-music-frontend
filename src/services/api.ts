@@ -12,7 +12,7 @@ export interface SignupRequest {
 }
 
 export interface User {
-  id: string
+  _id: string
   username: string
   email: string
   profilePic?: string
@@ -34,12 +34,36 @@ export interface AuthResponse {
 }
 
 export interface Music {
-  id: string
+  _id: string
   title: string
   artist: string
-  album?: string
+  album: string
   albumArt: string
   genres: string[]
+}
+
+export interface CreateMusicData {
+  title: string
+  artist: string
+  album: string
+  albumArt: File
+  genres: string[]
+}
+
+export interface UpdateMusicData {
+  title?: string
+  artist?: string
+  album?: string
+  albumArt?: File
+  genres?: string[]
+}
+
+export interface UpdateMusicResponse {
+  success: boolean
+  message: string
+  data?: {
+    music: Music
+  }
 }
 
 export interface GetMusicList {
@@ -47,9 +71,46 @@ export interface GetMusicList {
   data: Music[]
 }
 
+export interface Statistics {
+  totals: {
+    songs: number
+    artists: number
+    albums: number
+    genres: number
+  }
+  songsPerGenre: Array<{
+    _id: string
+    count: number
+  }>
+  artistStats: Array<{
+    _id: string
+    songCount: number
+    albums: string[]
+    artist: string
+    albumCount: number
+    artistLower: string
+  }>
+  albumStats: Array<{
+    _id: {
+      artist: string
+      album: string
+    }
+    songCount: number
+    artist: string
+    album: string
+    albumLower: string
+  }>
+}
+
+export interface GetStatisticsResponse {
+  success: boolean
+  message: string
+  data: Statistics
+}
+
 
 // Mock API base URL - replace with your actual API
-const API_BASE = 'http://localhost:3000/api'
+const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
 
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -67,7 +128,6 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
-      credentials: "include",
     })
     return handleResponse<AuthResponse>(response)
   },
@@ -112,6 +172,18 @@ export const authApi = {
     })
     return handleResponse<User>(response)
   },
+
+  async updateProfileWithFile(formData: FormData): Promise<User> {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${API_BASE}/users/profile`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+    return handleResponse<User>(response)
+  },
 }
 
 // Music API functions
@@ -137,7 +209,31 @@ export const musicApi = {
     return handleResponse<Music>(response)
   },
 
-  async updateMusic(id: string, musicData: Partial<Music>): Promise<Music> {
+  async createMusicWithFile(musicData: CreateMusicData): Promise<Music> {
+    const token = localStorage.getItem('token')
+    const formData = new FormData()
+    
+    formData.append('title', musicData.title)
+    formData.append('artist', musicData.artist)
+    formData.append('album', musicData.album)
+    formData.append('albumArt', musicData.albumArt)
+    
+    // Append each genre as a separate field
+    musicData.genres.forEach((genre, index) => {
+      formData.append(`genres[${index}]`, genre)
+    })
+    
+    const response = await fetch(`${API_BASE}/music`, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+    return handleResponse<Music>(response)
+  },
+
+  async updateMusic(id: string, musicData: UpdateMusicData): Promise<UpdateMusicResponse> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${API_BASE}/music/${id}`, {
       method: 'PUT',
@@ -147,7 +243,33 @@ export const musicApi = {
       },
       body: JSON.stringify(musicData),
     })
-    return handleResponse<Music>(response)
+    return handleResponse<UpdateMusicResponse>(response)
+  },
+
+  async updateMusicWithFile(id: string, musicData: UpdateMusicData): Promise<UpdateMusicResponse> {
+    const token = localStorage.getItem('token')
+    const formData = new FormData()
+    
+    if (musicData.title) formData.append('title', musicData.title)
+    if (musicData.artist) formData.append('artist', musicData.artist)
+    if (musicData.album) formData.append('album', musicData.album)
+    if (musicData.albumArt) formData.append('albumArt', musicData.albumArt)
+    
+    // Append genres if provided
+    if (musicData.genres) {
+      musicData.genres.forEach((genre, index) => {
+        formData.append(`genres[${index}]`, genre)
+      })
+    }
+    
+    const response = await fetch(`${API_BASE}/music/${id}`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+    return handleResponse<UpdateMusicResponse>(response)
   },
 
   async deleteMusic(id: string): Promise<void> {
@@ -156,6 +278,14 @@ export const musicApi = {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     })
+  },
+
+  async getStatistics(): Promise<GetStatisticsResponse> {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${API_BASE}/music/statistics`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+    return handleResponse<GetStatisticsResponse>(response)
   },
 }
 

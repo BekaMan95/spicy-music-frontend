@@ -1,38 +1,42 @@
 import { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { createMusicRequested } from '../../store/slices/musicSlice'
+import { updateMusicRequested } from '../../store/slices/musicSlice'
 import { ModalContainer, Button, TextInput, Col, Row } from '../ui'
-import { type CreateMusicData } from '../../services/api'
+import { type CreateMusicData, type Music } from '../../services/api'
 
-interface AddMusicModalProps {
+interface EditMusicModalProps {
   isOpen: boolean
   onClose: () => void
+  music: Music
 }
 
-export function AddMusicModal({ isOpen, onClose }: AddMusicModalProps) {
+export function EditMusicModal({ isOpen, onClose, music }: EditMusicModalProps) {
   const dispatch = useAppDispatch()
   const { isLoading } = useAppSelector((s) => s.music)
   const [formData, setFormData] = useState({
-    title: '',
-    artist: '',
-    album: '',
-    albumArt: '',
-    genres: [] as string[],
+    title: music.title,
+    artist: music.artist,
+    album: music.album,
+    albumArt: music.albumArt,
+    genres: music.genres,
   })
   const [albumArtFile, setAlbumArtFile] = useState<File | null>(null)
 
   function handleSubmit() {
-    if (!formData.title || !formData.artist || !formData.album || !albumArtFile || formData.genres.length === 0) return
     
-    const musicData: CreateMusicData = {
-      title: formData.title,
-      artist: formData.artist,
-      album: formData.album,
-      albumArt: albumArtFile,
-      genres: formData.genres,
+    const musicData: Partial<CreateMusicData> = {
+        title: formData.title,
+        artist: formData.artist,
+        album: formData.album,
+        genres: formData.genres,
+    }
+
+    if (albumArtFile) {
+        musicData.albumArt = albumArtFile
+        
     }
     
-    dispatch(createMusicRequested(musicData))
+    dispatch(updateMusicRequested({ id: music._id, data: musicData}))
     setFormData({ title: '', artist: '', album: '', albumArt: '', genres: [] })
     setAlbumArtFile(null)
     onClose()
@@ -56,7 +60,7 @@ export function AddMusicModal({ isOpen, onClose }: AddMusicModalProps) {
       zIndex: 50
     }} onClick={handleClose}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>Add New Music</h3>
+        <h3 style={{ marginTop: 0 }}> Edit {music.title} </h3>
         <Col>
           <TextInput 
             placeholder="Title *" 
@@ -100,7 +104,7 @@ export function AddMusicModal({ isOpen, onClose }: AddMusicModalProps) {
               }}
             />
             {albumArtFile && (
-              <div style={{ marginTop: 8, fontSize: 14, color: '#10b981' }}>
+              <div style={{ marginTop: 8, fontSize: 10, color: '#10b981' }}>
                 Selected: {albumArtFile.name}
               </div>
             )}
@@ -108,9 +112,9 @@ export function AddMusicModal({ isOpen, onClose }: AddMusicModalProps) {
           <Row>
             <Button 
               onClick={handleSubmit} 
-              disabled={isLoading || !formData.title || !formData.artist || !formData.album || !albumArtFile || formData.genres.length === 0}
+              disabled={isLoading}
             >
-              {isLoading ? 'Adding...' : 'Add Music'}
+              {isLoading ? 'Sending...' : 'Edit Music'}
             </Button>
             <Button 
               onClick={handleClose} 

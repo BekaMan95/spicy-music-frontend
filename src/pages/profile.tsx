@@ -4,8 +4,27 @@ import { Surface, Row, Col, TextInput, Button, ModalContainer } from '../compone
 import { useAppSelector, useAppDispatch } from '../store'
 import { authApi } from '../services/api'
 import { pushToast } from '../store/slices/toastSlice'
+import DefaultAvatar from '../assets/default-avatar.svg'
 
 const Wrap = styled.div({ maxWidth: 720, margin: '20px auto', padding: 20 })
+const AvatarContainer = styled.div({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 16,
+  marginBottom: 20,
+})
+const Avatar = styled.img({
+  width: 80,
+  height: 80,
+  borderRadius: '50%',
+  objectFit: 'cover',
+  border: '2px solid #374151',
+})
+const DefaultAvatarImg = styled.img({
+  width: 80,
+  height: 80,
+  borderRadius: '50%',
+})
 
 export function ProfilePage() {
   const dispatch = useAppDispatch()
@@ -16,14 +35,23 @@ export function ProfilePage() {
     username: user?.username ?? '',
     email: user?.email ?? '',
   })
+  const [profilePicFile, setProfilePicFile] = useState<File | null>(null)
 
   async function handleSave() {
     if (!user) return
     setIsLoading(true)
     try {
-      await authApi.updateProfile(formData)
+      if (profilePicFile) {
+        const formDataToSend = new FormData()
+        formDataToSend.append('username', formData.username)
+        formDataToSend.append('profilePic', profilePicFile)
+        await authApi.updateProfileWithFile(formDataToSend)
+      } else {
+        await authApi.updateProfile(formData)
+      }
       dispatch(pushToast({ title: 'Success', description: 'Profile updated!' }))
       setOpen(false)
+      setProfilePicFile(null)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update profile'
       dispatch(pushToast({ title: 'Error', description: message }))
@@ -35,12 +63,19 @@ export function ProfilePage() {
   return (
     <Wrap>
       <Surface style={{ padding: 20 }}>
-        <Row style={{ justifyContent: 'space-between' }}>
+        <AvatarContainer>
+          {user?.profilePic ? (
+            <Avatar src={user.profilePic} alt="Profile" />
+          ) : (
+            <DefaultAvatarImg src={DefaultAvatar} alt="Default Avatar" />
+          )}
           <div>
             <h2 style={{ margin: 0 }}>{user?.username ?? 'Guest'}</h2>
             <div style={{ color: '#a1a1aa' }}>{user?.email ?? ''}</div>
           </div>
-          <Button onClick={() => setOpen(true)}>Edit</Button>
+        </AvatarContainer>
+        <Row style={{ justifyContent: 'flex-end' }}>
+          <Button onClick={() => setOpen(true)}>Edit Profile</Button>
         </Row>
       </Surface>
       {open && (
@@ -53,11 +88,29 @@ export function ProfilePage() {
                 value={formData.username} 
                 onChange={(e) => setFormData({...formData, username: e.target.value})} 
               />
-              <TextInput 
-                placeholder="Email" 
-                value={formData.email} 
-                onChange={(e) => setFormData({...formData, email: e.target.value})} 
-              />
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', marginBottom: 8, color: '#a1a1aa' }}>
+                  Profile Picture
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setProfilePicFile(e.target.files?.[0] || null)}
+                  style={{ 
+                    width: '100%', 
+                    padding: 8, 
+                    border: '1px solid #374151', 
+                    borderRadius: 4, 
+                    background: 'transparent',
+                    color: 'white'
+                  }}
+                />
+                {profilePicFile && (
+                  <div style={{ marginTop: 8, fontSize: 14, color: '#10b981' }}>
+                    Selected: {profilePicFile.name}
+                  </div>
+                )}
+              </div>
               <Row>
                 <Button onClick={handleSave} disabled={isLoading}>
                   {isLoading ? 'Saving...' : 'Save'}

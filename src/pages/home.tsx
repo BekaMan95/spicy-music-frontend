@@ -5,9 +5,30 @@ import { useAppDispatch, useAppSelector } from '../store'
 import { fetchMusicRequested, setQuery, setFilters, updateMusicRequested, deleteMusicRequested } from '../store/slices/musicSlice'
 import { type Music } from '../services/api'
 import { AddMusicModal } from '../components/music/AddMusicModal'
+import { StatisticsComponent } from '../components/statistics/StatisticsComponent'
+import { EditMusicModal } from '../components/music/EditMusicModal'
 
 const Grid = styled.div({ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16, padding: 20 })
 const Card = styled(Surface)({ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' })
+const AlbumArt = styled.img({
+  width: 60,
+  height: 60,
+  borderRadius: 8,
+  objectFit: 'cover',
+  marginRight: 16,
+})
+const DefaultAlbumArt = styled.div({
+  width: 60,
+  height: 60,
+  borderRadius: 8,
+  backgroundColor: '#374151',
+  marginRight: 16,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#9CA3AF',
+  fontSize: 24,
+})
 
 export function HomePage() {
   const dispatch = useAppDispatch()
@@ -15,6 +36,7 @@ export function HomePage() {
   const [editing, setEditing] = useState<Music | null>(null)
   const [deleting, setDeleting] = useState<Music | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingMusic, setEditingMusic] = useState<Music | null>(null);
 
   useEffect(() => { dispatch(fetchMusicRequested()) }, [dispatch])
 
@@ -26,7 +48,7 @@ export function HomePage() {
 
   function handleDelete() {
     if (!deleting) return
-    dispatch(deleteMusicRequested({ id: deleting.id }))
+    dispatch(deleteMusicRequested({ id: deleting._id }))
     setDeleting(null)
   }
 
@@ -50,13 +72,20 @@ export function HomePage() {
             <div style={{ textAlign: 'center', padding: 40, color: '#a1a1aa' }}>Loading music...</div>
           ) : (
             items.map((m) => (
-              <Card key={m.id}>
-                <div>
-                  <div style={{ fontWeight: 700 }}>{m.title}</div>
-                  <div style={{ color: '#a1a1aa', fontSize: 14 }}>{m.artist} {m.album ? `· ${m.album}` : ''}</div>
+              <Card key={m._id}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {m.albumArt ? (
+                    <AlbumArt src={m.albumArt} alt={`${m.title} album art`} />
+                  ) : (
+                    <DefaultAlbumArt>🎵</DefaultAlbumArt>
+                  )}
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{m.title}</div>
+                    <div style={{ color: '#a1a1aa', fontSize: 14 }}>{m.artist} {m.album ? `· ${m.album}` : ''}</div>
+                  </div>
                 </div>
                 <Row>
-                  <Button onClick={() => setEditing(m)} disabled={isLoading}>Edit</Button>
+                  <Button onClick={() => setEditingMusic(m)} disabled={isLoading}>Edit</Button>
                   <Button onClick={() => setDeleting(m)} disabled={isLoading} style={{ background: 'transparent', color: 'white', border: '1px solid #2e2e32' }}>Delete</Button>
                 </Row>
               </Card>
@@ -64,11 +93,7 @@ export function HomePage() {
           )}
         </Col>
       </div>
-      <Surface style={{ padding: 16 }}>
-        <h3 style={{ marginTop: 0 }}>Statistics</h3>
-        <div>Total tracks: {items.length}</div>
-        <div>Unique artists: {new Set(items.map((i) => i.artist)).size}</div>
-      </Surface>
+      <StatisticsComponent />
 
       {editing && (
         <div style={{ position: 'fixed', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(0,0,0,0.5)' }} onClick={() => setEditing(null)}>
@@ -100,6 +125,13 @@ export function HomePage() {
       )}
 
       <AddMusicModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
+      {editingMusic && (
+        <EditMusicModal
+          isOpen={true}
+          onClose={() => setEditingMusic(null)}
+          music={editingMusic}
+        />
+      )}
     </Grid>
   )
 }

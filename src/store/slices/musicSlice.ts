@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { type GetMusicList, type Music } from '../../services/api'
+import { type GetMusicList, type Music, type CreateMusicData, type UpdateMusicData, type GetStatisticsResponse } from '../../services/api'
 
 type MusicState = {
   items: Music[]
@@ -7,7 +7,11 @@ type MusicState = {
   error: string | null
   query: string
   filters: { tag?: string }
+  statistics: GetStatisticsResponse | null
 }
+
+type CreateMusicPayload = CreateMusicData | Omit<Music, 'id'>
+type UpdateMusicPayload = { id: string; data: UpdateMusicData } | Music
 
 const initialState: MusicState = {
   items: [],
@@ -15,6 +19,7 @@ const initialState: MusicState = {
   error: null,
   query: '',
   filters: {},
+  statistics: null
 }
 
 const musicSlice = createSlice({
@@ -39,17 +44,29 @@ const musicSlice = createSlice({
     setFilters(state, action: PayloadAction<{ tag?: string }>) {
       state.filters = action.payload
     },
-    createMusicRequested(state, _action: PayloadAction<Omit<Music, 'id'>>) {
+    createMusicRequested(state, _action: PayloadAction<CreateMusicPayload>) {
       state.isLoading = true
       state.error = null
     },
-    updateMusicRequested(state, _action: PayloadAction<Music>) {
+    updateMusicRequested(state, _action: PayloadAction<UpdateMusicPayload>) {
       state.isLoading = true
       state.error = null
     },
     deleteMusicRequested(state, _action: PayloadAction<{ id: string }>) {
       state.isLoading = true
       state.error = null
+    },
+    fetchStatisticsRequested(state) {
+      state.isLoading = true
+      state.error = null
+    },
+    fetchStatisticsSucceeded(state, action: PayloadAction<GetStatisticsResponse>) {
+      state.statistics = action.payload
+      state.isLoading = false
+    },
+    fetchStatisticsFailed(state, action: PayloadAction<string>) {
+      state.isLoading = false
+      state.error = action.payload
     },
   },
 })
@@ -63,6 +80,9 @@ export const {
   createMusicRequested,
   updateMusicRequested,
   deleteMusicRequested,
+  fetchStatisticsRequested,
+  fetchStatisticsSucceeded,
+  fetchStatisticsFailed
 } = musicSlice.actions
 
 export default musicSlice.reducer
