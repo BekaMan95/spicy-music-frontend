@@ -66,9 +66,30 @@ export interface UpdateMusicResponse {
   }
 }
 
+export interface MusicQueryParams {
+  page?: number
+  limit?: number
+  search?: string
+  artist?: string
+  album?: string
+  genre?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
 export interface GetMusicList {
   message: string
   data: Music[]
+  pagination?: {
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+  }
+  page: number
+  pages: number
+  total: number
+  count: number
 }
 
 export interface Statistics {
@@ -160,7 +181,7 @@ export const authApi = {
     return handleResponse<User>(response)
   },
 
-  async updateProfile(userData: Partial<User>): Promise<User> {
+  async updateProfile(userData: Partial<User>): Promise<GetProfileResponse> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${API_BASE}/users/profile`, {
       method: 'PUT',
@@ -170,10 +191,10 @@ export const authApi = {
       },
       body: JSON.stringify(userData),
     })
-    return handleResponse<User>(response)
+    return handleResponse<GetProfileResponse>(response)
   },
 
-  async updateProfileWithFile(formData: FormData): Promise<User> {
+  async updateProfileWithFile(formData: FormData): Promise<GetProfileResponse> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${API_BASE}/users/profile`, {
       method: 'PUT',
@@ -182,18 +203,35 @@ export const authApi = {
       },
       body: formData,
     })
-    return handleResponse<User>(response)
+    return handleResponse<GetProfileResponse>(response)
   },
 }
 
 // Music API functions
 export const musicApi = {
-  async getMusic(): Promise<Music[]> {
+  async getMusic(params?: MusicQueryParams): Promise<GetMusicList> {
     const token = localStorage.getItem('token')
-    const response = await fetch(`${API_BASE}/music`, {
+    
+    // Build query string
+    const queryParams = new URLSearchParams()
+    if (params) {
+      if (params.page) queryParams.append('page', params.page.toString())
+      if (params.limit) queryParams.append('limit', params.limit.toString())
+      if (params.search) queryParams.append('search', params.search)
+      if (params.artist) queryParams.append('artist', params.artist)
+      if (params.album) queryParams.append('album', params.album)
+      if (params.genre) queryParams.append('genre', params.genre)
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy)
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder)
+    }
+    
+    const queryString = queryParams.toString()
+    const url = queryString ? `${API_BASE}/music?${queryString}` : `${API_BASE}/music`
+    
+    const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
-    return handleResponse<Music[]>(response)
+    return handleResponse<GetMusicList>(response)
   },
 
   async createMusic(musicData: Omit<Music, 'id'>): Promise<Music> {

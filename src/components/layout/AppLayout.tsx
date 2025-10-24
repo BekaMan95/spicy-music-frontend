@@ -16,7 +16,7 @@ const Main = styled.main({ flex: 1 })
 
 function FlameLogo() {
   return (
-    <img src='src/assets/spicy.svg' alt='Spicy' height={28} width={28}></img>
+    <img src='/src/assets/spicy.svg' alt='Spicy' height={28} width={28}></img>
   )
 }
 

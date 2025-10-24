@@ -2,8 +2,9 @@ import { useState } from 'react'
 import styled from '@emotion/styled'
 import { Surface, Row, Col, TextInput, Button, ModalContainer } from '../components/ui'
 import { useAppSelector, useAppDispatch } from '../store'
-import { authApi } from '../services/api'
+import { authApi, type User } from '../services/api'
 import { pushToast } from '../store/slices/toastSlice'
+import { updateProfileSucceeded } from '../store/slices/authSlice'
 import DefaultAvatar from '../assets/default-avatar.svg'
 
 const Wrap = styled.div({ maxWidth: 720, margin: '20px auto', padding: 20 })
@@ -41,14 +42,16 @@ export function ProfilePage() {
     if (!user) return
     setIsLoading(true)
     try {
+      let updatedUser: User
       if (profilePicFile) {
         const formDataToSend = new FormData()
         formDataToSend.append('username', formData.username)
         formDataToSend.append('profilePic', profilePicFile)
-        await authApi.updateProfileWithFile(formDataToSend)
+        updatedUser = (await authApi.updateProfileWithFile(formDataToSend)).data.user
       } else {
-        await authApi.updateProfile(formData)
+        updatedUser = (await authApi.updateProfile(formData)).data.user
       }
+      dispatch(updateProfileSucceeded(updatedUser))
       dispatch(pushToast({ title: 'Success', description: 'Profile updated!' }))
       setOpen(false)
       setProfilePicFile(null)
@@ -65,7 +68,7 @@ export function ProfilePage() {
       <Surface style={{ padding: 20 }}>
         <AvatarContainer>
           {user?.profilePic ? (
-            <Avatar src={user.profilePic} alt="Profile" />
+            <Avatar src={`/${user.profilePic}`} alt="Profile" />
           ) : (
             <DefaultAvatarImg src={DefaultAvatar} alt="Default Avatar" />
           )}
@@ -124,5 +127,3 @@ export function ProfilePage() {
     </Wrap>
   )
 }
-
-

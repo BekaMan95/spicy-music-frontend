@@ -16,28 +16,35 @@ import {
   deleteMusicRequested,
   fetchStatisticsRequested,
   fetchStatisticsSucceeded,
-  fetchStatisticsFailed
+  fetchStatisticsFailed,
 } from './slices/musicSlice'
 import { pushToast } from './slices/toastSlice'
-import { 
-  authApi, 
-  musicApi, 
-  tokenManager, 
-  type AuthResponse, 
-  type GetMusicList, 
+import {
+  authApi,
+  musicApi,
+  tokenManager,
+  type AuthResponse,
+  type GetMusicList,
   type Music,
   type CreateMusicData,
   type UpdateMusicData,
   type UpdateMusicResponse,
   type GetStatisticsResponse,
+  type MusicQueryParams,
 } from '../services/api'
 
+/* ------------------------------- AUTH WORKERS ------------------------------- */
 function* loginWorker(action: ReturnType<typeof loginRequested>) {
   try {
     const response: AuthResponse = yield call(authApi.login, action.payload)
     yield call(tokenManager.setToken, response.data.token)
     yield put(authSucceeded(response))
-    yield put(pushToast({ title: 'Welcome back!', description: `Logged in as ${response.data.user.username}` }))
+    yield put(
+      pushToast({
+        title: 'Welcome back!',
+        description: `Logged in as ${response.data.user.username}`,
+      })
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Login failed'
     yield put(authFailed(message))
@@ -50,7 +57,12 @@ function* signupWorker(action: ReturnType<typeof signupRequested>) {
     const response: AuthResponse = yield call(authApi.signup, action.payload)
     yield call(tokenManager.setToken, response.data.token)
     yield put(authSucceeded(response))
-    yield put(pushToast({ title: 'Account created!', description: `Welcome ${response.data.user.username}` }))
+    yield put(
+      pushToast({
+        title: 'Account created!',
+        description: `Welcome ${response.data.user.username}`,
+      })
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Signup failed'
     yield put(authFailed(message))
@@ -61,21 +73,30 @@ function* signupWorker(action: ReturnType<typeof signupRequested>) {
 function* logoutWorker() {
   try {
     yield call(authApi.logout)
-    yield call(tokenManager.removeToken)
-    yield put(logoutCompleted())
-    yield put(pushToast({ title: 'Logged out', description: 'See you next time!' }))
-  } catch (error) {
-    // Still logout locally even if API call fails
+  } finally {
     yield call(tokenManager.removeToken)
     yield put(logoutCompleted())
     yield put(pushToast({ title: 'Logged out', description: 'See you next time!' }))
   }
 }
 
-function* fetchMusicWorker() {
+/* ------------------------------ MUSIC WORKERS ------------------------------- */
+
+function* fetchMusicWorker(action: ReturnType<typeof fetchMusicRequested>) {
   try {
-    const music: GetMusicList = yield call(musicApi.getMusic)
-    yield put(fetchMusicSucceeded(music))
+    // Prepare params for API
+    const params: MusicQueryParams = action.payload || {}
+    const response: GetMusicList = yield call(musicApi.getMusic, params)
+
+    // Normalize pagination (based on your API sample)
+    const pagination = {
+      currentPage: response.page ?? 1,
+      totalPages: response.pages ?? 1,
+      totalItems: response.total ?? response.data?.length ?? 0,
+      itemsPerPage: response.count ?? response.data?.length ?? 0,
+    }
+
+    yield put(fetchMusicSucceeded({ ...response, pagination }))
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to load music'
     yield put(fetchMusicFailed(message))
@@ -97,8 +118,7 @@ function* fetchStatisticsWorker() {
 function* createMusicWorker(action: ReturnType<typeof createMusicRequested>) {
   try {
     let newMusic: Music
-    
-    // Check if payload has albumArt as File (CreateMusicData) or string (Omit<Music, 'id'>)
+
     if ('albumArt' in action.payload && action.payload.albumArt instanceof File) {
       const musicData = action.payload as CreateMusicData
       newMusic = yield call(musicApi.createMusicWithFile, musicData)
@@ -106,10 +126,11 @@ function* createMusicWorker(action: ReturnType<typeof createMusicRequested>) {
       const musicData = action.payload as Omit<Music, 'id'>
       newMusic = yield call(musicApi.createMusic, musicData)
     }
-    
+
     yield put(pushToast({ title: 'Success', description: `Created "${newMusic.title}"` }))
-    yield call(fetchMusicWorker)
-    yield call(fetchStatisticsWorker)
+    // Re-fetch current list (will use current filters/query/page from Redux)
+    yield put(fetchMusicRequested(undefined))
+    yield put(fetchStatisticsRequested())
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create music'
     yield put(pushToast({ title: 'Error', description: message }))
@@ -118,35 +139,27 @@ function* createMusicWorker(action: ReturnType<typeof createMusicRequested>) {
 
 function* updateMusicWorker(action: ReturnType<typeof updateMusicRequested>) {
   try {
-    let updatedMusic: UpdateMusicResponse
-    
-    // Check if payload has id and data structure (new format) or is a Music object (legacy format)
-    // if ('data' in action.payload && 'id' in action.payload) {
     const { id, data } = action.payload as { id: string; data: UpdateMusicData }
-    if (!id) {
-      throw new Error('Music ID is a must for update')
-    }
-    
-    // Check if data contains File (FormData) or regular data
-    if (data.albumArt instanceof File || Object.values(data).some(value => value instanceof File)) {
+    if (!id) throw new Error('Music ID is required for update')
+
+    let updatedMusic: UpdateMusicResponse
+    if (
+      data.albumArt instanceof File ||
+      Object.values(data).some((value) => value instanceof File)
+    ) {
       updatedMusic = yield call(musicApi.updateMusicWithFile, id, data)
     } else {
       updatedMusic = yield call(musicApi.updateMusic, id, data)
     }
-    // } else {
-    //   // Legacy format - Music object
-    //   const musicData = action.payload as Music
-    //   const { _id, ...updateData } = musicData
-    //   if (!_id) {
-    //     throw new Error('Music ID is required for update')
-    //   }
-      
-    //   updatedMusic = yield call(musicApi.updateMusic, _id, updateData)
-    // }
-    // console.log(JSON.stringify(updatedMusic), updatedMusic);
-    yield put(pushToast({ title: 'Success', description: `Updated ${updatedMusic.data?.music.title}` }))
-    yield call(fetchMusicWorker)
-    yield call(fetchStatisticsWorker)
+
+    yield put(
+      pushToast({
+        title: 'Success',
+        description: `Updated ${updatedMusic.data?.music.title}`,
+      })
+    )
+    yield put(fetchMusicRequested(undefined))
+    yield put(fetchStatisticsRequested())
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update music'
     yield put(pushToast({ title: 'Error', description: message }))
@@ -155,28 +168,34 @@ function* updateMusicWorker(action: ReturnType<typeof updateMusicRequested>) {
 
 function* deleteMusicWorker(action: ReturnType<typeof deleteMusicRequested>) {
   try {
-    if (!action.payload.id) {
-      throw new Error('Music ID is required for deletion')
-    }
-    yield call(musicApi.deleteMusic, action.payload.id)
+    const { id } = action.payload
+    if (!id) throw new Error('Music ID is required for deletion')
+
+    yield call(musicApi.deleteMusic, id)
     yield put(pushToast({ title: 'Success', description: 'Music deleted' }))
-    yield call(fetchMusicWorker)
-    yield call(fetchStatisticsWorker)
+    yield put(fetchMusicRequested(undefined))
+    yield put(fetchStatisticsRequested())
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to delete music'
     yield put(pushToast({ title: 'Error', description: message }))
   }
 }
 
+/* ------------------------------- ROOT SAGA --------------------------------- */
 export default function* rootSaga() {
   yield all([
+    // Auth
     takeLatest(loginRequested.type, loginWorker),
     takeLatest(signupRequested.type, signupWorker),
     takeLatest(logoutRequested.type, logoutWorker),
+
+    // Music
     takeLatest(fetchMusicRequested.type, fetchMusicWorker),
     takeLatest(createMusicRequested.type, createMusicWorker),
     takeLatest(updateMusicRequested.type, updateMusicWorker),
     takeLatest(deleteMusicRequested.type, deleteMusicWorker),
+
+    // Stats
     takeLatest(fetchStatisticsRequested.type, fetchStatisticsWorker),
   ])
 }

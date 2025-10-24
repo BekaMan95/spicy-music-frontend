@@ -4,6 +4,8 @@ import { useAppSelector, useAppDispatch } from '../../store'
 import { useState } from 'react'
 import { logoutRequested } from '../../store/slices/authSlice'
 import DefaultAvatar from '../../assets/default-avatar.svg'
+import { Button } from '../ui'
+
 
 const Trigger = styled.button(({ theme }) => ({
   background: 'transparent', color: theme.colors.text, border: `1px solid ${theme.colors.border}`,
@@ -41,7 +43,7 @@ export function ProfileMenu() {
     <Wrapper>
       <Trigger onClick={() => setOpen((v) => !v)}>
         {user?.profilePic ? (
-          <Avatar src={user.profilePic} alt="Profile" />
+          <Avatar src={`/${user.profilePic}`} alt="Profile" />
         ) : (
           <DefaultAvatarImg src={DefaultAvatar} alt="Default Avatar" />
         )}
@@ -49,12 +51,10 @@ export function ProfileMenu() {
       </Trigger>
       {open && (
         <Menu>
-          <Link to="/profile" onClick={() => setOpen(false)}>Profile</Link>
-          <button onClick={handleLogout}>Logout</button>
+          <Link to="/profile" onClick={() => setOpen(false)}> <Button style={{ background: 'transparent', color: 'white', border: '1px solid #2e2e32', width: '100%' }} > Profile </Button> </Link>
+          <Button onClick={handleLogout}>Logout</Button>
         </Menu>
       )}
     </Wrapper>
   )
 }
-
-
