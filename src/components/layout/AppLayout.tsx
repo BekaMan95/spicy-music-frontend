@@ -2,6 +2,7 @@ import styled from '@emotion/styled'
 import { Link, Outlet } from 'react-router-dom'
 import { ProfileMenu } from '../profile/ProfileMenu'
 import { ToasterHost } from '../toaster/ToasterHost'
+import { useAppSelector } from '../../store'
 
 const Shell = styled.div({ display: 'flex', minHeight: '100vh', flexDirection: 'column' })
 const Header = styled.header(({ theme }) => ({
@@ -21,6 +22,8 @@ function FlameLogo() {
 }
 
 export function AppLayout() {
+  const user = useAppSelector((s) => s.auth.user) // get current session
+
   return (
     <Shell>
       <Header>
@@ -29,7 +32,7 @@ export function AppLayout() {
         </Link>
         <nav style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <Link to="/home">Home</Link>
-          <ProfileMenu />
+          {user && <ProfileMenu />} {/* only if session exists */}
         </nav>
       </Header>
       <Main>
@@ -42,5 +45,3 @@ export function AppLayout() {
     </Shell>
   )
 }
-
-
