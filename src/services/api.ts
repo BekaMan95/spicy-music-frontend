@@ -147,7 +147,10 @@ export const authApi = {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE}/users/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*'
+      },
       body: JSON.stringify(credentials),
     })
     return handleResponse<AuthResponse>(response)
@@ -156,7 +159,10 @@ export const authApi = {
   async signup(userData: SignupRequest): Promise<AuthResponse> {
     const response = await fetch(`${API_BASE}/users/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': '*/*'
+      },
       body: JSON.stringify(userData),
     })
     return handleResponse<AuthResponse>(response)
@@ -168,6 +174,7 @@ export const authApi = {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
     })
@@ -176,7 +183,11 @@ export const authApi = {
   async getProfile(): Promise<User> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${API_BASE}/users/profile`, {
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': `Bearer ${token}` 
+      },
     })
     return handleResponse<User>(response)
   },
@@ -187,6 +198,7 @@ export const authApi = {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(userData),
@@ -199,6 +211,8 @@ export const authApi = {
     const response = await fetch(`${API_BASE}/users/profile`, {
       method: 'PUT',
       headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       body: formData,
@@ -229,7 +243,11 @@ export const musicApi = {
     const url = queryString ? `${API_BASE}/music?${queryString}` : `${API_BASE}/music`
     
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': `Bearer ${token}` 
+      },
     })
     return handleResponse<GetMusicList>(response)
   },
@@ -240,6 +258,7 @@ export const musicApi = {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(musicData),
@@ -264,6 +283,8 @@ export const musicApi = {
     const response = await fetch(`${API_BASE}/music`, {
       method: 'POST',
       headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       body: formData,
@@ -277,6 +298,7 @@ export const musicApi = {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(musicData),
@@ -303,6 +325,8 @@ export const musicApi = {
     const response = await fetch(`${API_BASE}/music/${id}`, {
       method: 'PUT',
       headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       body: formData,
@@ -314,14 +338,22 @@ export const musicApi = {
     const token = localStorage.getItem('token')
     await fetch(`${API_BASE}/music/${id}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': `Bearer ${token}` 
+      },
     })
   },
 
   async getStatistics(): Promise<GetStatisticsResponse> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${API_BASE}/music/statistics`, {
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Authorization': `Bearer ${token}` 
+      },
     })
     return handleResponse<GetStatisticsResponse>(response)
   },
