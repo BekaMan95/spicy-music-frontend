@@ -22,8 +22,8 @@ const Avatar = styled.img({
   objectFit: 'cover',
 })
 const DefaultAvatarImg = styled.img({
-  width: 24,
-  height: 24,
+  width: 28,
+  height: 28,
   borderRadius: '50%',
 })
 

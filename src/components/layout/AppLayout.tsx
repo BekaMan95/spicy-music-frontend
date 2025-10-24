@@ -1,6 +1,5 @@
 import styled from '@emotion/styled'
 import { Link, Outlet } from 'react-router-dom'
-import { colors } from '../../theme'
 import { ProfileMenu } from '../profile/ProfileMenu'
 import { ToasterHost } from '../toaster/ToasterHost'
 
@@ -17,9 +16,7 @@ const Main = styled.main({ flex: 1 })
 
 function FlameLogo() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden>
-      <path fill={colors.accent} d="M12 2s2 3 2 5-2 3-2 5 2 3 2 5-2 5-2 5-8-3-8-10c0-5 5-7 8-10z"/>
-    </svg>
+    <img src='src/assets/spicy.svg' alt='Spicy' height={28} width={28}></img>
   )
 }
 
