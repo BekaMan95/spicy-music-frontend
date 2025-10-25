@@ -177,6 +177,7 @@ export const authApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include'
     })
   },
 
@@ -188,6 +189,7 @@ export const authApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}` 
       },
+      credentials: 'include'
     })
     return handleResponse<User>(response)
   },
@@ -201,6 +203,7 @@ export const authApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
       body: JSON.stringify(userData),
     })
     return handleResponse<GetProfileResponse>(response)
@@ -215,6 +218,7 @@ export const authApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
       body: formData,
     })
     return handleResponse<GetProfileResponse>(response)
@@ -248,6 +252,7 @@ export const musicApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}` 
       },
+      credentials: 'include',
     })
     return handleResponse<GetMusicList>(response)
   },
@@ -261,6 +266,7 @@ export const musicApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
       body: JSON.stringify(musicData),
     })
     return handleResponse<Music>(response)
@@ -287,6 +293,7 @@ export const musicApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
       body: formData,
     })
     return handleResponse<Music>(response)
@@ -301,6 +308,7 @@ export const musicApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
       body: JSON.stringify(musicData),
     })
     return handleResponse<UpdateMusicResponse>(response)
@@ -328,6 +336,7 @@ export const musicApi = {
         'Content-Type': 'application/json',
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
+        credentials: 'include',
       },
       body: formData,
     })
@@ -343,6 +352,7 @@ export const musicApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}` 
       },
+      credentials: 'include',
     })
   },
 
@@ -354,6 +364,7 @@ export const musicApi = {
         'Accept': '*/*',
         'Authorization': `Bearer ${token}` 
       },
+      credentials: 'include',
     })
     return handleResponse<GetStatisticsResponse>(response)
   },
