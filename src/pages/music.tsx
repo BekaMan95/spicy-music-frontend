@@ -82,7 +82,7 @@ export function MusicPage() {
       <Surface style={{ padding: 20 }}>
         <Row style={{ alignItems: 'center', marginBottom: 20 }}>
           {music.albumArt ? (
-            <AlbumArt src={`/${music.albumArt}`} alt={`${music.title} album art`} />
+            <AlbumArt src={`${import.meta.env.VITE_API_URL}/${music.albumArt}`} alt={`${music.title} album art`} />
           ) : (
             <DefaultAlbumArt>🎵</DefaultAlbumArt>
           )}

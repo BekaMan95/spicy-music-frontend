@@ -5,7 +5,7 @@ import { useAppSelector, useAppDispatch } from '../store'
 import { authApi, type GetProfileResponse } from '../services/api'
 import { pushToast } from '../store/slices/toastSlice'
 import { updateProfileSucceeded } from '../store/slices/authSlice'
-import DefaultAvatar from '../assets/default-avatar.svg'
+import DefaultAvatar from '/default-avatar.svg'
 
 const Wrap = styled.div({ maxWidth: 720, margin: '20px auto', padding: 20 })
 const AvatarContainer = styled.div({

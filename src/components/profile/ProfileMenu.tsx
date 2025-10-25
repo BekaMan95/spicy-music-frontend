@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../../store'
 import { useState } from 'react'
 import { logoutRequested } from '../../store/slices/authSlice'
-import DefaultAvatar from '../../assets/default-avatar.svg'
+import DefaultAvatar from '/default-avatar.svg'
 import { Button } from '../ui'
 
 
@@ -43,7 +43,7 @@ export function ProfileMenu() {
     <Wrapper>
       <Trigger onClick={() => setOpen((v) => !v)}>
         {user?.profilePic ? (
-          <Avatar src={`/${user.profilePic}`} alt="Profile" />
+          <Avatar src={`${import.meta.env.VITE_API_URL}/${user.profilePic}`} alt="Profile" />
         ) : (
           <DefaultAvatarImg src={DefaultAvatar} alt="Default Avatar" />
         )}

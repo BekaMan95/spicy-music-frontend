@@ -259,7 +259,7 @@ export function HomePage() {
                   }}
                 >
                   {m.albumArt ? (
-                    <AlbumArt src={m.albumArt} alt={`${m.title} album art`} />
+                    <AlbumArt src={`${import.meta.env.VITE_API_URL}/${m.albumArt}`} alt={`${m.title} album art`} />
                   ) : (
                     <DefaultAlbumArt>🎵</DefaultAlbumArt>
                   )}

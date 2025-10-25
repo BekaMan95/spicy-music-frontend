@@ -337,14 +337,13 @@ export const musicApi = {
         formData.append(`genres[${index}]`, genre)
       })
     }
-    
     const response = await fetch(`${API_BASE}/music/${id}`, {
       method: 'PUT',
       headers: { 
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
-        credentials: 'include',
       },
+      credentials: 'include',
       body: formData,
     })
     return handleResponse<UpdateMusicResponse>(response)
