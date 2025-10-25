@@ -68,7 +68,7 @@ export function ProfilePage() {
       <Surface style={{ padding: 20 }}>
         <AvatarContainer>
           {user?.profilePic ? (
-            <Avatar src={`/${user.profilePic}`} alt="Profile" />
+            <Avatar src={`${import.meta.env.VITE_API_URL}/${user.profilePic}`} alt="Profile" />
           ) : (
             <DefaultAvatarImg src={DefaultAvatar} alt="Default Avatar" />
           )}
