@@ -40,6 +40,16 @@ export interface Music {
   album: string
   albumArt: string
   genres: string[]
+  createrAt: string
+  updatedAt: string
+}
+
+export interface GetMusicResponse {
+  success: boolean
+  message: string
+  data: {
+    music: Music
+  }
 }
 
 export interface CreateMusicData {
@@ -214,7 +224,6 @@ export const authApi = {
     const response = await fetch(`${API_BASE}/users/profile`, {
       method: 'PUT',
       headers: { 
-        'Content-Type': 'application/json',
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
@@ -257,7 +266,7 @@ export const musicApi = {
     return handleResponse<GetMusicList>(response)
   },
 
-  async createMusic(musicData: Omit<Music, 'id'>): Promise<Music> {
+  async createMusic(musicData: Omit<Music, 'id'>): Promise<GetMusicResponse> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${API_BASE}/music`, {
       method: 'POST',
@@ -269,10 +278,10 @@ export const musicApi = {
       credentials: 'include',
       body: JSON.stringify(musicData),
     })
-    return handleResponse<Music>(response)
+    return handleResponse<GetMusicResponse>(response)
   },
 
-  async createMusicWithFile(musicData: CreateMusicData): Promise<Music> {
+  async createMusicWithFile(musicData: CreateMusicData): Promise<GetMusicResponse> {
     const token = localStorage.getItem('token')
     const formData = new FormData()
     
@@ -289,14 +298,13 @@ export const musicApi = {
     const response = await fetch(`${API_BASE}/music`, {
       method: 'POST',
       headers: { 
-        'Content-Type': 'application/json',
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
       },
       credentials: 'include',
       body: formData,
     })
-    return handleResponse<Music>(response)
+    return handleResponse<GetMusicResponse>(response)
   },
 
   async updateMusic(id: string, musicData: UpdateMusicData): Promise<UpdateMusicResponse> {
@@ -333,7 +341,6 @@ export const musicApi = {
     const response = await fetch(`${API_BASE}/music/${id}`, {
       method: 'PUT',
       headers: { 
-        'Content-Type': 'application/json',
         'Accept': '*/*',
         'Authorization': `Bearer ${token}`,
         credentials: 'include',

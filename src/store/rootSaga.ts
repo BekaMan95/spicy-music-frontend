@@ -31,6 +31,7 @@ import {
   type UpdateMusicResponse,
   type GetStatisticsResponse,
   type MusicQueryParams,
+  type GetMusicResponse,
 } from '../services/api'
 
 /* ------------------------------- AUTH WORKERS ------------------------------- */
@@ -117,7 +118,7 @@ function* fetchStatisticsWorker() {
 
 function* createMusicWorker(action: ReturnType<typeof createMusicRequested>) {
   try {
-    let newMusic: Music
+    let newMusic: GetMusicResponse
 
     if ('albumArt' in action.payload && action.payload.albumArt instanceof File) {
       const musicData = action.payload as CreateMusicData
@@ -127,7 +128,7 @@ function* createMusicWorker(action: ReturnType<typeof createMusicRequested>) {
       newMusic = yield call(musicApi.createMusic, musicData)
     }
 
-    yield put(pushToast({ title: 'Success', description: `Created "${newMusic.title}"` }))
+    yield put(pushToast({ title: 'Success', description: `Created "${newMusic.data.music.title}"` }))
     // Re-fetch current list (will use current filters/query/page from Redux)
     yield put(fetchMusicRequested(undefined))
     yield put(fetchStatisticsRequested())

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import styled from '@emotion/styled'
 import { Surface, Row, Col, TextInput, Button, ModalContainer } from '../components/ui'
 import { useAppSelector, useAppDispatch } from '../store'
-import { authApi, type User } from '../services/api'
+import { authApi, type GetProfileResponse } from '../services/api'
 import { pushToast } from '../store/slices/toastSlice'
 import { updateProfileSucceeded } from '../store/slices/authSlice'
 import DefaultAvatar from '../assets/default-avatar.svg'
@@ -42,16 +42,16 @@ export function ProfilePage() {
     if (!user) return
     setIsLoading(true)
     try {
-      let updatedUser: User
+      let updatedUser: GetProfileResponse
       if (profilePicFile) {
         const formDataToSend = new FormData()
         formDataToSend.append('username', formData.username)
         formDataToSend.append('profilePic', profilePicFile)
-        updatedUser = (await authApi.updateProfileWithFile(formDataToSend)).data.user
+        updatedUser = await authApi.updateProfileWithFile(formDataToSend)
       } else {
-        updatedUser = (await authApi.updateProfile(formData)).data.user
+        updatedUser = await authApi.updateProfile(formData)
       }
-      dispatch(updateProfileSucceeded(updatedUser))
+      dispatch(updateProfileSucceeded(updatedUser.data.user))
       dispatch(pushToast({ title: 'Success', description: 'Profile updated!' }))
       setOpen(false)
       setProfilePicFile(null)
